@@ -11,8 +11,8 @@ from scaler.protocol.python.message import ObjectInstruction
 from scaler.protocol.python.status import ObjectManagerStatus
 from scaler.scheduler.managers.mixins import ClientManager, ObjectManager, WorkerManager
 from scaler.scheduler.object_usage.object_tracker import ObjectTracker, ObjectUsage
-from scaler.utility.mixins import Looper, Reporter
 from scaler.utility.identifiers import ClientID, ObjectID
+from scaler.utility.mixins import Looper, Reporter
 
 
 @dataclasses.dataclass

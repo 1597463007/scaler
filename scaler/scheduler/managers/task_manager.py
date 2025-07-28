@@ -23,6 +23,7 @@ class VanillaTaskManager(TaskManager, Looper, Reporter):
         self._object_manager: Optional[ObjectManager] = None
         self._worker_manager: Optional[WorkerManager] = None
         self._graph_manager: Optional[VanillaGraphTaskManager] = None
+        self._scaling_manager: Optional[ScalingManager] = None
 
         self._task_id_to_task: Dict[TaskID, Task] = dict()
 
@@ -44,6 +45,7 @@ class VanillaTaskManager(TaskManager, Looper, Reporter):
         object_manager: ObjectManager,
         worker_manager: WorkerManager,
         graph_manager: VanillaGraphTaskManager,
+        scaling_manager: ScalingManager,
     ):
         self._binder = binder
         self._binder_monitor = binder_monitor
@@ -52,6 +54,7 @@ class VanillaTaskManager(TaskManager, Looper, Reporter):
         self._object_manager = object_manager
         self._worker_manager = worker_manager
         self._graph_manager = graph_manager
+        self._scaling_manager = scaling_manager
 
     async def routine(self):
         task_id = await self._unassigned.get()
@@ -170,4 +173,6 @@ class VanillaTaskManager(TaskManager, Looper, Reporter):
         self, task_id: TaskID, function_name: bytes, status: TaskStatus, metadata: Optional[bytes] = b""
     ):
         worker = self._worker_manager.get_worker_by_task_id(task_id)
-        await self._binder_monitor.send(StateTask.new_msg(task_id, function_name, status, worker, metadata))
+        state_task = StateTask.new_msg(task_id, function_name, status, worker, metadata)
+        await self._scaling_manager.on_state_task(state_task)
+        await self._binder_monitor.send(state_task)

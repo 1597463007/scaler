@@ -76,6 +76,7 @@ class Scheduler:
             callback=None,
             identity=None,
         )
+
         logging.info(
             f"{self.__class__.__name__}: listen to scheduler monitor address {self._address_monitor.to_address()}"
         )
@@ -99,6 +100,7 @@ class Scheduler:
             task_allocate_policy=self._task_allocate_policy,
             storage_address=self._storage_address,
         )
+        self._scaling_manager = VanillaScalingManager(adapter_webhook_url="")
         self._balance_manager = VanillaBalanceManager(
             load_balance_trigger_times=config.load_balance_trigger_times,
             task_allocate_policy=self._task_allocate_policy,
@@ -128,8 +130,10 @@ class Scheduler:
             self._object_manager,
             self._worker_manager,
             self._graph_manager,
+            self._scaling_manager,
         )
-        self._worker_manager.register(self._binder, self._binder_monitor, self._task_manager)
+        self._worker_manager.register(self._binder, self._binder_monitor, 
+                                      self._task_manager, self._scaling_manager)
         self._balance_manager.register(self._binder, self._binder_monitor, self._task_manager)
 
         self._information_manager.register_managers(

@@ -37,11 +37,15 @@ class IOContext:
     num_threads: int
 
     def __init__(self, num_threads: int = 1) -> None: ...
+<<<<<<< HEAD
     def __repr__(self) -> str: ...
 
     def createIOSocket(self, /, identity: str, socket_type: IOSocketType) -> Awaitable[IOSocket]:
         """Create an io socket with an identity and socket type"""
 
+=======
+    def createIOSocket(self, /, identity: str, socket_type: IOSocketType) -> IOSocket: ...
+>>>>>>> a1c10f1 (Stuff)
 
 class IOSocket:
     identity: str

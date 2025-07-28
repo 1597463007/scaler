@@ -24,6 +24,7 @@ dependencies = [
     "pycapnp==2.0.0",
     "pyzmq",
     "tblib",
+    "aiohttp",
 ]
 
 [tool.scikit-build.metadata.version]
