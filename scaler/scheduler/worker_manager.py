@@ -19,7 +19,7 @@ from scaler.protocol.python.message import (
 )
 from scaler.protocol.python.status import ProcessorStatus, Resource, WorkerManagerStatus, WorkerStatus
 from scaler.scheduler.allocators.queued import QueuedAllocator
-from scaler.scheduler.mixins import TaskManager, WorkerManager
+from scaler.scheduler.mixins import TaskManager, WorkerManager, ScalingManager
 from scaler.utility.identifiers import ClientID, TaskID, WorkerID
 from scaler.utility.mixins import Looper, Reporter
 
@@ -43,6 +43,7 @@ class VanillaWorkerManager(WorkerManager, Looper, Reporter):
         self._binder: Optional[AsyncBinder] = None
         self._binder_monitor: Optional[AsyncConnector] = None
         self._task_manager: Optional[TaskManager] = None
+        self._scaling_manager: Optional[ScalingManager] = None
 
         self._worker_alive_since: Dict[WorkerID, Tuple[float, WorkerHeartbeat]] = dict()
         self._allocator = QueuedAllocator(per_worker_queue_size)
@@ -50,10 +51,17 @@ class VanillaWorkerManager(WorkerManager, Looper, Reporter):
         self._last_balance_advice: Dict[WorkerID, List[TaskID]] = dict()
         self._load_balance_advice_same_count = 0
 
-    def register(self, binder: AsyncBinder, binder_monitor: AsyncConnector, task_manager: TaskManager):
+    def register(
+        self,
+        binder: AsyncBinder,
+        binder_monitor: AsyncConnector,
+        task_manager: TaskManager,
+        scaling_manager: ScalingManager,
+    ):
         self._binder = binder
         self._binder_monitor = binder_monitor
         self._task_manager = task_manager
+        self._scaling_manager = scaling_manager
 
     async def assign_task_to_worker(self, task: Task) -> bool:
         worker = await self._allocator.assign_task(task.task_id)
@@ -97,13 +105,12 @@ class VanillaWorkerManager(WorkerManager, Looper, Reporter):
     async def on_heartbeat(self, worker_id: WorkerID, info: WorkerHeartbeat):
         if await self._allocator.add_worker(worker_id):
             logging.info(f"{worker_id!r} connected")
-            await self._binder_monitor.send(StateWorker.new_msg(worker_id, b"connected"))
+            state_worker = StateWorker.new_msg(worker_id, b"connected")
+            await self._scaling_manager.on_state_worker(state_worker)
+            await self._binder_monitor.send(state_worker)
 
         self._worker_alive_since[worker_id] = (time.time(), info)
-        await self._binder.send(
-            worker_id,
-            WorkerHeartbeatEcho.new_msg(object_storage_address=self._storage_address)
-        )
+        await self._binder.send(worker_id, WorkerHeartbeatEcho.new_msg(object_storage_address=self._storage_address))
 
     async def on_client_shutdown(self, client_id: ClientID):
         for worker in self._allocator.get_worker_ids():
@@ -223,7 +230,9 @@ class VanillaWorkerManager(WorkerManager, Looper, Reporter):
             return
 
         logging.info(f"{worker_id!r} disconnected")
-        await self._binder_monitor.send(StateWorker.new_msg(worker_id, b"disconnected"))
+        state_worker = StateWorker.new_msg(worker_id, b"disconnected")
+        await self._scaling_manager.on_state_worker(state_worker)
+        await self._binder_monitor.send(state_worker)
         self._worker_alive_since.pop(worker_id)
 
         task_ids = self._allocator.remove_worker(worker_id)

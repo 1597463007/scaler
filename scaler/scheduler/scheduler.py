@@ -26,6 +26,7 @@ from scaler.scheduler.client_manager import VanillaClientManager
 from scaler.scheduler.config import SchedulerConfig
 from scaler.scheduler.graph_manager import VanillaGraphTaskManager
 from scaler.scheduler.object_manager import VanillaObjectManager
+from scaler.scheduler.scaling_manager import VanillaScalingManager
 from scaler.scheduler.status_reporter import StatusReporter
 from scaler.scheduler.task_manager import VanillaTaskManager
 from scaler.scheduler.worker_manager import VanillaWorkerManager
@@ -43,14 +44,10 @@ class Scheduler:
             )
 
         if config.storage_address is None:
-            self._storage_address = ObjectStorageAddress.new_msg(
-                host=config.address.host,
-                port=config.address.port + 1
-            )
+            self._storage_address = ObjectStorageAddress.new_msg(host=config.address.host, port=config.address.port + 1)
         else:
             self._storage_address = ObjectStorageAddress.new_msg(
-                host=config.storage_address.host,
-                port=config.storage_address.port
+                host=config.storage_address.host, port=config.storage_address.port
             )
 
         if config.monitor_address is None:
@@ -72,9 +69,7 @@ class Scheduler:
         self._connector_storage = AsyncObjectStorageConnector()
 
         logging.info(f"{self.__class__.__name__}: listen to scheduler address {config.address.to_address()}")
-        logging.info(
-            f"{self.__class__.__name__}: connect to object storage server {self._storage_address!r}"
-        )
+        logging.info(f"{self.__class__.__name__}: connect to object storage server {self._storage_address!r}")
         logging.info(
             f"{self.__class__.__name__}: listen to scheduler monitor address {self._address_monitor.to_address()}"
         )
@@ -94,6 +89,7 @@ class Scheduler:
             load_balance_trigger_times=config.load_balance_trigger_times,
             storage_address=self._storage_address,
         )
+        self._scaling_manager = VanillaScalingManager(adapter_webhook_url="")
         self._status_reporter = StatusReporter(self._binder_monitor)
 
         # register
@@ -119,8 +115,9 @@ class Scheduler:
             self._object_manager,
             self._worker_manager,
             self._graph_manager,
+            self._scaling_manager,
         )
-        self._worker_manager.register(self._binder, self._binder_monitor, self._task_manager)
+        self._worker_manager.register(self._binder, self._binder_monitor, self._task_manager, self._scaling_manager)
 
         self._status_reporter.register_managers(
             self._binder, self._client_manager, self._object_manager, self._task_manager, self._worker_manager

@@ -122,9 +122,7 @@ def get_args():
         "tcp://localhost:2347",
     )
     parser.add_argument(
-        "address",
-        type=ZMQConfig.from_string,
-        help="scheduler address to connect to, e.g.: `tcp://localhost:6378`"
+        "address", type=ZMQConfig.from_string, help="scheduler address to connect to, e.g.: `tcp://localhost:6378`"
     )
     return parser.parse_args()
 

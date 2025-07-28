@@ -86,8 +86,7 @@ class ClientAgent(threading.Thread):
     def __initialize(self):
         self._disconnect_manager = ClientDisconnectManager()
         self._heartbeat_manager = ClientHeartbeatManager(
-            death_timeout_seconds=self._timeout_seconds,
-            storage_address_future=self._storage_address,
+            death_timeout_seconds=self._timeout_seconds, storage_address_future=self._storage_address
         )
         self._object_manager = ClientObjectManager(identity=self._identity)
         self._task_manager = ClientTaskManager()

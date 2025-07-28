@@ -8,8 +8,8 @@ from scaler.io.sync_object_storage_connector import SyncObjectStorageConnector
 from scaler.protocol.python.common import TaskStatus
 from scaler.protocol.python.message import Task, TaskCancel
 from scaler.utility.event_list import EventList
-from scaler.utility.metadata.profile_result import ProfileResult
 from scaler.utility.identifiers import ObjectID, TaskID
+from scaler.utility.metadata.profile_result import ProfileResult
 from scaler.utility.serialization import deserialize_failure
 
 
@@ -54,10 +54,7 @@ class ScalerFuture(Future):
             return self._profiling_info
 
     def set_result_ready(
-        self,
-        object_id: Optional[ObjectID],
-        task_status: TaskStatus,
-        profile_result: Optional[ProfileResult] = None,
+        self, object_id: Optional[ObjectID], task_status: TaskStatus, profile_result: Optional[ProfileResult] = None
     ) -> None:
         with self._condition:  # type: ignore[attr-defined]
             if self.done():
