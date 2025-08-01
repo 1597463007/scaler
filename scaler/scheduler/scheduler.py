@@ -30,6 +30,7 @@ from scaler.scheduler.managers.client_manager import VanillaClientManager
 from scaler.scheduler.managers.graph_manager import VanillaGraphTaskManager
 from scaler.scheduler.managers.information_manager import VanillaInformationManager
 from scaler.scheduler.managers.object_manager import VanillaObjectManager
+from scaler.scheduler.managers.scaling_manager import VanillaScalingManager
 from scaler.scheduler.managers.task_manager import VanillaTaskManager
 from scaler.scheduler.managers.worker_manager import VanillaWorkerManager
 from scaler.utility.event_loop import create_async_loop_routine
@@ -107,7 +108,7 @@ class Scheduler:
             task_allocate_policy=self._task_allocate_policy,
         )
         self._information_manager = VanillaInformationManager(self._binder_monitor)
-        
+
         # register
         self._binder.register(self.on_receive_message)
         self._client_manager.register(
@@ -133,8 +134,7 @@ class Scheduler:
             self._graph_manager,
             self._scaling_manager,
         )
-        self._worker_manager.register(self._binder, self._binder_monitor, 
-                                      self._task_manager, self._scaling_manager)
+        self._worker_manager.register(self._binder, self._binder_monitor, self._task_manager, self._scaling_manager)
         self._balance_manager.register(self._binder, self._binder_monitor, self._task_manager)
 
         self._information_manager.register_managers(

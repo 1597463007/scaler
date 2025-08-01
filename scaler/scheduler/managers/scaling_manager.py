@@ -5,7 +5,7 @@ import aiohttp
 
 from scaler.protocol.python.common import TaskStatus
 from scaler.protocol.python.message import StateTask, StateWorker
-from scaler.scheduler.mixins import ScalingManager
+from scaler.scheduler.managers.mixins import ScalingManager
 from scaler.utility.identifiers import WorkerID
 from scaler.utility.mixins import Reporter
 
