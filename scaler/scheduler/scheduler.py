@@ -89,7 +89,7 @@ class Scheduler:
             load_balance_trigger_times=config.load_balance_trigger_times,
             storage_address=self._storage_address,
         )
-        self._scaling_manager = VanillaScalingManager(adapter_webhook_url="")
+        self._scaling_manager = VanillaScalingManager(adapter_webhook_url="http://127.0.0.1:8123")
         self._status_reporter = StatusReporter(self._binder_monitor)
 
         # register
