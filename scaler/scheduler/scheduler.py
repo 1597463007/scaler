@@ -100,13 +100,14 @@ class Scheduler:
             task_allocate_policy=self._task_allocate_policy,
             storage_address=self._storage_address,
         )
-        self._scaling_manager = VanillaScalingManager(adapter_webhook_url="")
+
+        self._scaling_manager = VanillaScalingManager(adapter_webhook_url="http://127.0.0.1:8123")
         self._balance_manager = VanillaBalanceManager(
             load_balance_trigger_times=config.load_balance_trigger_times,
             task_allocate_policy=self._task_allocate_policy,
         )
         self._information_manager = VanillaInformationManager(self._binder_monitor)
-
+        
         # register
         self._binder.register(self.on_receive_message)
         self._client_manager.register(
