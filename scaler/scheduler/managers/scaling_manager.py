@@ -10,6 +10,11 @@ from scaler.utility.identifiers import WorkerID
 from scaler.utility.mixins import Reporter
 
 
+class NullScalingManager(ScalingManager, Reporter):
+    def get_status(self):
+        return {"worker_task_counts": 0, "workers_pending_startup": [], "workers_pending_shutdown": []}
+
+
 class VanillaScalingManager(ScalingManager, Reporter):
     def __init__(self, adapter_webhook_url: str, lower_task_ratio: int = 1, upper_task_ratio: int = 10):
         self.worker_task_counts = {}

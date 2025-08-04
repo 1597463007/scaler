@@ -19,7 +19,7 @@ from scaler.protocol.python.message import (
 )
 from scaler.protocol.python.status import ProcessorStatus, Resource, WorkerManagerStatus, WorkerStatus
 from scaler.scheduler.allocate_policy.mixins import TaskAllocatePolicy
-from scaler.scheduler.managers.mixins import TaskManager, WorkerManager
+from scaler.scheduler.managers.mixins import TaskManager, WorkerManager, ScalingManager
 from scaler.utility.identifiers import ClientID, TaskID, WorkerID
 from scaler.utility.mixins import Looper, Reporter
 

@@ -151,6 +151,7 @@ def main():
         address=args.address,
         storage_address=object_storage_address,
         monitor_address=args.monitor_address,
+        adapter_webhook_url=args.adapter_webhook_url,
         io_threads=args.io_threads,
         max_number_of_tasks_waiting=args.max_number_of_tasks_waiting,
         client_timeout_seconds=args.client_timeout_seconds,

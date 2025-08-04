@@ -30,7 +30,7 @@ from scaler.scheduler.managers.client_manager import VanillaClientManager
 from scaler.scheduler.managers.graph_manager import VanillaGraphTaskManager
 from scaler.scheduler.managers.information_manager import VanillaInformationManager
 from scaler.scheduler.managers.object_manager import VanillaObjectManager
-from scaler.scheduler.managers.scaling_manager import VanillaScalingManager
+from scaler.scheduler.managers.scaling_manager import VanillaScalingManager, NullScalingManager
 from scaler.scheduler.managers.task_manager import VanillaTaskManager
 from scaler.scheduler.managers.worker_manager import VanillaWorkerManager
 from scaler.utility.event_loop import create_async_loop_routine
@@ -102,7 +102,11 @@ class Scheduler:
             storage_address=self._storage_address,
         )
 
-        self._scaling_manager = VanillaScalingManager(adapter_webhook_url="http://127.0.0.1:8123")
+        if config.adapter_webhook_url is not None:
+            self._scaling_manager = VanillaScalingManager(adapter_webhook_url=config.adapter_webhook_url)
+        else:
+            self._scaling_manager = NullScalingManager()
+
         self._balance_manager = VanillaBalanceManager(
             load_balance_trigger_times=config.load_balance_trigger_times,
             task_allocate_policy=self._task_allocate_policy,
