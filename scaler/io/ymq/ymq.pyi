@@ -2,9 +2,9 @@
 # This file contains type stubs for the Ymq Python C Extension module
 
 import sys
+from collections.abc import Awaitable
 from enum import IntEnum
 from typing import SupportsBytes
-from collections.abc import Awaitable
 
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer
