@@ -79,8 +79,6 @@ def get_args():
     parser.add_argument(
         "--event-loop", "-e", default="builtin", choices=EventLoopType.allowed_types(), help="select event loop type"
     )
-
-    # Logging configuration
     parser.add_argument(
         "--logging-paths",
         "-lp",
@@ -104,8 +102,6 @@ def get_args():
         default=None,
         help="use standard python .conf file to specify python logging file configuration format",
     )
-
-    # Storage configuration
     parser.add_argument(
         "--object-storage-address",
         "-osa",
@@ -113,8 +109,6 @@ def get_args():
         default=None,
         help="specify the object storage server address, e.g.: tcp://localhost:2346",
     )
-
-    # Required arguments
     parser.add_argument(
         "scheduler_address",
         type=ZMQConfig.from_string,
@@ -127,7 +121,6 @@ def get_args():
 def main():
     args = get_args()
 
-    # Create VM adapter instance
     vm_adapter = VMAdapter(
         address=args.scheduler_address,
         storage_address=args.object_storage_address,
@@ -145,7 +138,6 @@ def main():
         logging_config_file=args.logging_config_file,
     )
 
-    # Create and run the aiohttp app directly
     app = vm_adapter.create_app()
     web.run_app(app, host=args.host, port=args.port)
 
