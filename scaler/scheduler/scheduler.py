@@ -30,6 +30,7 @@ from scaler.scheduler.managers.client_manager import VanillaClientManager
 from scaler.scheduler.managers.graph_manager import VanillaGraphTaskManager
 from scaler.scheduler.managers.information_manager import VanillaInformationManager
 from scaler.scheduler.managers.object_manager import VanillaObjectManager
+from scaler.scheduler.managers.scaling_manager import VanillaScalingManager, NullScalingManager
 from scaler.scheduler.managers.task_manager import VanillaTaskManager
 from scaler.scheduler.managers.worker_manager import VanillaWorkerManager
 from scaler.utility.event_loop import create_async_loop_routine
@@ -76,6 +77,7 @@ class Scheduler:
             callback=None,
             identity=None,
         )
+
         logging.info(
             f"{self.__class__.__name__}: listen to scheduler monitor address {self._address_monitor.to_address()}"
         )
@@ -99,6 +101,12 @@ class Scheduler:
             task_allocate_policy=self._task_allocate_policy,
             storage_address=self._storage_address,
         )
+
+        if config.adapter_webhook_url is not None:
+            self._scaling_manager = VanillaScalingManager(adapter_webhook_url=config.adapter_webhook_url)
+        else:
+            self._scaling_manager = NullScalingManager()
+
         self._balance_manager = VanillaBalanceManager(
             load_balance_trigger_times=config.load_balance_trigger_times,
             task_allocate_policy=self._task_allocate_policy,
@@ -128,8 +136,9 @@ class Scheduler:
             self._object_manager,
             self._worker_manager,
             self._graph_manager,
+            self._scaling_manager,
         )
-        self._worker_manager.register(self._binder, self._binder_monitor, self._task_manager)
+        self._worker_manager.register(self._binder, self._binder_monitor, self._task_manager, self._scaling_manager)
         self._balance_manager.register(self._binder, self._binder_monitor, self._task_manager)
 
         self._information_manager.register_managers(
