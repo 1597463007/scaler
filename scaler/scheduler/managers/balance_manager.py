@@ -6,7 +6,7 @@ from scaler.io.async_connector import AsyncConnector
 from scaler.protocol.python.message import StateBalanceAdvice
 from scaler.scheduler.allocate_policy.mixins import TaskAllocatePolicy
 from scaler.scheduler.managers.mixins import TaskManager
-from scaler.utility.identifiers import WorkerID, TaskID
+from scaler.utility.identifiers import TaskID, WorkerID
 from scaler.utility.mixins import Looper
 
 

@@ -11,8 +11,8 @@ from scaler.protocol.python.message import ObjectInstruction
 from scaler.protocol.python.status import ObjectManagerStatus
 from scaler.scheduler.managers.mixins import ClientManager, ObjectManager, WorkerManager
 from scaler.scheduler.object_usage.object_tracker import ObjectTracker, ObjectUsage
-from scaler.utility.mixins import Looper, Reporter
 from scaler.utility.identifiers import ClientID, ObjectID
+from scaler.utility.mixins import Looper, Reporter
 
 
 @dataclasses.dataclass
@@ -142,7 +142,5 @@ class VanillaObjectManager(ObjectManager, Looper, Reporter):
             self.on_add_object(instruction.object_user, object_id, object_type, object_name)
 
     def __finished_object_storage(self, creation: _ObjectCreation):
-        logging.debug(
-            f"del object cache object_name={creation.object_name!r}, object_id={creation.object_id!r}"
-        )
+        logging.debug(f"del object cache object_name={creation.object_name!r}, object_id={creation.object_id!r}")
         self._queue_deleted_object_ids.put_nowait(creation.object_id)
