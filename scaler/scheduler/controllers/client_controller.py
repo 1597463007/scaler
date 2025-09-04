@@ -2,8 +2,7 @@ import logging
 import time
 from typing import Dict, Optional, Set, Tuple
 
-from scaler.io.async_binder import AsyncBinder
-from scaler.io.async_connector import AsyncConnector
+from scaler.io.mixins import AsyncBinder, AsyncConnector
 from scaler.protocol.python.message import (
     ClientDisconnect,
     ClientHeartbeat,

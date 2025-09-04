@@ -1,6 +1,6 @@
 from typing import Dict, Optional, Set
 
-from scaler.io.async_connector import AsyncConnector
+from scaler.io.mixins import AsyncConnector
 from scaler.protocol.python.common import TaskCancelConfirmType
 from scaler.protocol.python.message import Task, TaskCancel, TaskResult, TaskCancelConfirm
 from scaler.utility.identifiers import TaskID

@@ -3,8 +3,7 @@ from typing import Optional, Set
 
 import psutil
 
-from scaler.io.async_connector import AsyncConnector
-from scaler.io.async_object_storage_connector import AsyncObjectStorageConnector
+from scaler.io.mixins import AsyncConnector, AsyncObjectStorageConnector
 from scaler.protocol.python.message import Resource, WorkerHeartbeat, WorkerHeartbeatEcho
 from scaler.protocol.python.status import ProcessorStatus
 from scaler.utility.mixins import Looper

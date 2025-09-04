@@ -2,8 +2,7 @@ from typing import Optional
 
 import psutil
 
-from scaler.io.async_binder import AsyncBinder
-from scaler.io.async_connector import AsyncConnector
+from scaler.io.mixins import AsyncBinder, AsyncConnector
 from scaler.protocol.python.message import StateScheduler, InformationRequest
 from scaler.protocol.python.status import Resource
 from scaler.scheduler.controllers.config_controller import VanillaConfigController

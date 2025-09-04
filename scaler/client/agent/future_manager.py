@@ -28,9 +28,14 @@ class ClientFutureManager(FutureManager):
 
     def cancel_all_futures(self):
         with self._lock:
-            logging.info(f"canceling {len(self._task_id_to_future)} task(s)")
-            for task_id, future in self._task_id_to_future.items():
-                future.cancel()
+            futures_to_cancel = list(self._task_id_to_future.values())
+
+        # Actually cancelling the futures should occur without holding the future manager's lock. That's because
+        # `cancel()` is blocking, and requires the manager to process result and cancel confirm messages.
+
+        logging.info(f"canceling {len(futures_to_cancel)} task(s)")
+        for future in futures_to_cancel:
+            future.cancel()
 
     def set_all_futures_with_exception(self, exception: Exception):
         with self._lock:

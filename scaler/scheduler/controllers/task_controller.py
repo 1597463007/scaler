@@ -3,8 +3,7 @@ import logging
 from collections import deque
 from typing import Awaitable, Callable, Optional, Dict, Any, Deque, Tuple, List
 
-from scaler.io.async_binder import AsyncBinder
-from scaler.io.async_connector import AsyncConnector
+from scaler.io.mixins import AsyncBinder, AsyncConnector
 from scaler.protocol.python.common import TaskResultType, TaskCancelConfirmType, TaskState, TaskTransition
 from scaler.protocol.python.message import StateTask, Task, TaskCancel, TaskResult, TaskCancelConfirm
 from scaler.protocol.python.status import TaskManagerStatus
@@ -254,7 +253,8 @@ class VanillaTaskController(TaskController, Looper, Reporter):
         assert state_machine.current_state() == TaskState.Canceled
 
         if task_cancel_confirm.task_id in self._unassigned:
-            pass  # if task is not assigned to any worker, we don't need to deal with worker manager
+            # if task is not assigned to any worker, we don't need to deal with worker manager
+            self._unassigned.remove(task_cancel_confirm.task_id)
         else:
             await self._worker_controller.on_task_done(task_cancel_confirm.task_id)
 

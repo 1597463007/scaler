@@ -4,9 +4,7 @@ import enum
 from asyncio import Queue
 from typing import Dict, List, Optional, Set, Tuple, Union
 
-from scaler.io.async_binder import AsyncBinder
-from scaler.io.async_connector import AsyncConnector
-from scaler.io.async_object_storage_connector import AsyncObjectStorageConnector
+from scaler.io.mixins import AsyncBinder, AsyncConnector, AsyncObjectStorageConnector
 from scaler.protocol.python.common import ObjectMetadata, TaskCancelConfirmType, TaskResultType
 from scaler.protocol.python.message import (
     GraphTask,

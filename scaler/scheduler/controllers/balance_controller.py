@@ -1,8 +1,7 @@
 import logging
 from typing import Dict, List, Optional
 
-from scaler.io.async_binder import AsyncBinder
-from scaler.io.async_connector import AsyncConnector
+from scaler.io.mixins import AsyncBinder, AsyncConnector
 from scaler.protocol.python.message import StateBalanceAdvice
 from scaler.scheduler.allocate_policy.mixins import TaskAllocatePolicy
 from scaler.scheduler.controllers.config_controller import VanillaConfigController

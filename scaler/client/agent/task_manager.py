@@ -2,7 +2,7 @@ from typing import Optional, Set
 
 from scaler.client.agent.future_manager import ClientFutureManager
 from scaler.client.agent.mixins import ObjectManager, TaskManager
-from scaler.io.async_connector import AsyncConnector
+from scaler.io.mixins import AsyncConnector
 from scaler.protocol.python.message import GraphTask, GraphTaskCancel, Task, TaskCancel, TaskResult, TaskCancelConfirm
 
 

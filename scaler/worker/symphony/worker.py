@@ -7,8 +7,8 @@ from typing import Optional
 import zmq
 import zmq.asyncio
 
-from scaler.io.async_connector import AsyncConnector
-from scaler.io.async_object_storage_connector import AsyncObjectStorageConnector
+from scaler.io.mixins import AsyncConnector, AsyncObjectStorageConnector
+from scaler.io.async_connector import ZMQAsyncConnector
 from scaler.protocol.python.message import (
     ClientDisconnect,
     DisconnectRequest,
@@ -81,7 +81,7 @@ class SymphonyWorker(multiprocessing.get_context("spawn").Process):  # type: ign
         register_event_loop(self._event_loop)
 
         self._context = zmq.asyncio.Context()
-        self._connector_external = AsyncConnector(
+        self._connector_external = ZMQAsyncConnector(
             context=self._context,
             name=self.name,
             socket_type=zmq.DEALER,

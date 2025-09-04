@@ -5,9 +5,7 @@ from typing import Dict, List, Optional, Tuple
 import tblib.pickling_support
 
 # from scaler.utility.logging.utility import setup_logger
-from scaler.io.async_binder import AsyncBinder
-from scaler.io.async_connector import AsyncConnector
-from scaler.io.async_object_storage_connector import AsyncObjectStorageConnector
+from scaler.io.mixins import AsyncBinder, AsyncConnector, AsyncObjectStorageConnector
 from scaler.protocol.python.common import ObjectMetadata, TaskResultType
 from scaler.protocol.python.message import ObjectInstruction, ProcessorInitialized, Task, TaskResult
 from scaler.utility.exceptions import ProcessorDiedError

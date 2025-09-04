@@ -11,8 +11,9 @@ from typing import Callable, IO, List, Optional, Tuple, cast
 import tblib.pickling_support
 import zmq
 
-from scaler.io.sync_connector import SyncConnector
-from scaler.io.sync_object_storage_connector import SyncObjectStorageConnector
+from scaler.io.mixins import SyncConnector, SyncObjectStorageConnector
+from scaler.io.sync_connector import ZMQSyncConnector
+from scaler.io.sync_object_storage_connector import PySyncObjectStorageConnector
 from scaler.protocol.python.common import ObjectMetadata, TaskResultType
 from scaler.protocol.python.message import ObjectInstruction, ProcessorInitialized, Task, TaskLog, TaskResult
 from scaler.protocol.python.mixins import Message
@@ -82,10 +83,12 @@ class Processor(multiprocessing.get_context("spawn").Process):  # type: ignore
         setup_logger(log_paths=tuple(logging_paths), logging_level=self._logging_level)
         tblib.pickling_support.install()
 
-        self._connector_agent = SyncConnector(
+        self._connector_agent: SyncConnector = ZMQSyncConnector(
             context=zmq.Context(), socket_type=zmq.DEALER, address=self._agent_address, identity=None
         )
-        self._connector_storage = SyncObjectStorageConnector(self._storage_address.host, self._storage_address.port)
+        self._connector_storage: SyncObjectStorageConnector = PySyncObjectStorageConnector(
+            self._storage_address.host, self._storage_address.port
+        )
 
         self._object_cache = ObjectCache(
             garbage_collect_interval_seconds=self._garbage_collect_interval_seconds,
@@ -102,7 +105,7 @@ class Processor(multiprocessing.get_context("spawn").Process):  # type: ignore
             self.__register_signal(SUSPEND_SIGNAL, self.__suspend)
 
     def __interrupt(self, *args):
-        self._connector_agent.close()  # interrupts any blocking socket.
+        self._connector_agent.destroy()  # interrupts any blocking socket.
 
     def __suspend(self, *args):
         assert self._resume_event is not None
@@ -136,7 +139,7 @@ class Processor(multiprocessing.get_context("spawn").Process):  # type: ignore
 
         finally:
             self._object_cache.destroy()
-            self._connector_agent.close()
+            self._connector_agent.destroy()
 
             self._object_cache.join()
 

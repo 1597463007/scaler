@@ -9,9 +9,10 @@ from typing import Optional, Set, Tuple
 
 import zmq.asyncio
 
-from scaler.io.async_binder import AsyncBinder
-from scaler.io.async_connector import AsyncConnector
-from scaler.io.async_object_storage_connector import AsyncObjectStorageConnector
+from scaler.io.mixins import AsyncBinder, AsyncConnector, AsyncObjectStorageConnector
+from scaler.io.async_binder import ZMQAsyncBinder
+from scaler.io.async_connector import ZMQAsyncConnector
+from scaler.io.async_object_storage_connector import PyAsyncObjectStorageConnector
 from scaler.io.config import PROFILING_INTERVAL_SECONDS
 from scaler.protocol.python.message import (
     ClientDisconnect,
@@ -105,7 +106,7 @@ class Worker(multiprocessing.get_context("spawn").Process):  # type: ignore
         register_event_loop(self._event_loop)
 
         self._context = zmq.asyncio.Context()
-        self._connector_external = AsyncConnector(
+        self._connector_external = ZMQAsyncConnector(
             context=self._context,
             name=self.name,
             socket_type=zmq.DEALER,
@@ -115,12 +116,12 @@ class Worker(multiprocessing.get_context("spawn").Process):  # type: ignore
             identity=self._ident,
         )
 
-        self._binder_internal = AsyncBinder(
+        self._binder_internal = ZMQAsyncBinder(
             context=self._context, name=self.name, address=self._address_internal, identity=self._ident
         )
         self._binder_internal.register(self.__on_receive_internal)
 
-        self._connector_storage = AsyncObjectStorageConnector()
+        self._connector_storage = PyAsyncObjectStorageConnector()
 
         self._heartbeat_manager = VanillaHeartbeatManager(
             storage_address=self._storage_address, tags=self._tags, task_queue_size=self._task_queue_size

@@ -7,8 +7,7 @@ import cloudpickle
 from bidict import bidict
 
 from scaler import Serializer
-from scaler.io.async_connector import AsyncConnector
-from scaler.io.async_object_storage_connector import AsyncObjectStorageConnector
+from scaler.io.mixins import AsyncConnector, AsyncObjectStorageConnector
 from scaler.protocol.python.common import ObjectMetadata, ObjectStorageAddress, TaskResultType, TaskCancelConfirmType
 from scaler.protocol.python.message import ObjectInstruction, Task, TaskCancel, TaskResult, TaskCancelConfirm
 from scaler.utility.identifiers import ObjectID, TaskID
