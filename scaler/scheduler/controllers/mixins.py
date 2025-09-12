@@ -15,6 +15,7 @@ from scaler.protocol.python.message import (
     TaskResult,
     WorkerHeartbeat,
     TaskCancelConfirm,
+    InformationSnapshot,
 )
 from scaler.scheduler.task.task_state_machine import TaskTypeFlags
 from scaler.utility.identifiers import ClientID, ObjectID, TaskID, WorkerID
@@ -197,4 +198,10 @@ class WorkerController(Reporter):
 class InformationController(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     async def on_request(self, request: InformationRequest):
+        raise NotImplementedError()
+
+
+class ScalingController(Reporter):
+    @abc.abstractmethod
+    async def on_snapshot(self, information_snapshot: InformationSnapshot):
         raise NotImplementedError()
