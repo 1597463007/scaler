@@ -1,10 +1,12 @@
 # syntax=docker/dockerfile:1.7
-FROM alpine:3.20
+FROM alpine:latest
 
 # Preinstall multiple Python versions; override at build time
 ARG PYTHON_VERSIONS="\
     3.12.5 \
 "
+ARG SCALER_REPO="https://github.com/1597463007/scaler.git"
+ARG SCALER_REF="ec2_dev"
 
 # ---- System deps for CPython on musl + small QoL tools ----
 RUN apk add --no-cache \
@@ -22,7 +24,7 @@ RUN apk add --no-cache \
     ncurses-dev \
     tk tk-dev \
     wget tar \
-    boost-dev
+    boost-dev capnproto-dev
 
 # ---- pyenv ----
 ENV PYENV_ROOT=/opt/pyenv
@@ -40,6 +42,14 @@ RUN set -eux; \
 
 # ---- uv (fast installer/resolver) ----
 RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+
+# ---- Scaler ----
+RUN set -eux; \
+    git clone --branch "${SCALER_REF}" --depth 1 "${SCALER_REPO}" scaler; \
+    cd scaler; \
+    eval "$(pyenv init -)"; \
+    python -m pip install --upgrade pip; \
+    pip install --no-cache-dir -e .
 
 # ---- Runtime env knobs ----
 # e.g., "3.12" or "3.12.5"; must be among PYTHON_VERSIONS
