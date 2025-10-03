@@ -10,16 +10,7 @@ from scaler.utility.identifiers import WorkerID
 from scaler.utility.object_storage_config import ObjectStorageConfig
 from scaler.utility.zmq_config import ZMQConfig
 from scaler.worker.worker import Worker
-
-WorkerGroupID = bytes
-
-
-class CapacityExceededError(Exception):
-    pass
-
-
-class WorkerGroupNotFoundError(Exception):
-    pass
+from scaler.worker_adapter.common import CapacityExceededError, WorkerGroupID, WorkerGroupNotFoundError
 
 
 class NativeWorkerAdapter:

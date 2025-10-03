@@ -9,17 +9,8 @@ from aiohttp.web_request import Request
 from scaler.utility.identifiers import WorkerID
 from scaler.utility.object_storage_config import ObjectStorageConfig
 from scaler.utility.zmq_config import ZMQConfig
+from scaler.worker_adapter.common import CapacityExceededError, WorkerGroupID, WorkerGroupNotFoundError
 from scaler.worker_adapter.symphony.worker import SymphonyWorker
-
-WorkerGroupID = bytes
-
-
-class CapacityExceededError(Exception):
-    pass
-
-
-class WorkerGroupNotFoundError(Exception):
-    pass
 
 
 class SymphonyWorkerAdapter:

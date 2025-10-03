@@ -46,6 +46,10 @@ class VanillaScalingController(ScalingController):
                 worker_group_id: sum(information_snapshot.workers[worker_id].queued_tasks for worker_id in worker_ids)
                 for worker_group_id, worker_ids in self._worker_groups.items()
             }
+            if not worker_group_task_counts:
+                logging.warning("No worker groups available to shut down. There might be statically provisioned workers.")
+                return
+
             worker_group_id = min(worker_group_task_counts, key=worker_group_task_counts.get)
             await self._shutdown_worker_group(worker_group_id)
 

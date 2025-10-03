@@ -1,0 +1,211 @@
+import argparse
+import os
+
+from aiohttp import web
+
+from scaler.entry_points.cluster import parse_capabilities
+from scaler.io.config import (
+    DEFAULT_GARBAGE_COLLECT_INTERVAL_SECONDS,
+    DEFAULT_HARD_PROCESSOR_SUSPEND,
+    DEFAULT_HEARTBEAT_INTERVAL_SECONDS,
+    DEFAULT_IO_THREADS,
+    DEFAULT_TASK_TIMEOUT_SECONDS,
+    DEFAULT_TRIM_MEMORY_THRESHOLD_BYTES,
+    DEFAULT_WORKER_DEATH_TIMEOUT,
+)
+from scaler.utility.event_loop import EventLoopType, register_event_loop
+from scaler.utility.logging.utility import setup_logger
+from scaler.utility.object_storage_config import ObjectStorageConfig
+from scaler.utility.zmq_config import ZMQConfig
+from scaler.worker_adapter.ecs import ECSWorkerAdapter
+
+
+def get_args():
+    parser = argparse.ArgumentParser(
+        "scaler ECS worker adapter", formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+
+    # Server configuration
+    parser.add_argument(
+        "--host", type=str, default="localhost", help="host address for the ecs worker adapter HTTP server"
+    )
+    parser.add_argument("--port", "-p", type=int, required=True, help="port for the ecs worker adapter HTTP server")
+
+    # AWS / ECS configuration
+    parser.add_argument(
+        "--aws-access-key-id",
+        type=str,
+        default=os.environ.get("AWS_ACCESS_KEY_ID"),
+        help="AWS access key id (or set AWS_ACCESS_KEY_ID env)",
+    )
+    parser.add_argument(
+        "--aws-secret-access-key",
+        type=str,
+        default=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        help="AWS secret access key (or set AWS_SECRET_ACCESS_KEY env)",
+    )
+    parser.add_argument("--aws-region", type=str, default="us-east-1", help="AWS region for ECS cluster")
+    parser.add_argument("--ecs-cluster", type=str, default="scaler-cluster", help="ECS cluster name")
+    parser.add_argument(
+        "--ecs-task-image",
+        type=str,
+        default="public.ecr.aws/v4u8j8r6/scaler:latest",
+        help="Container image used for ECS tasks",
+    )
+    parser.add_argument(
+        "--ecs-python-requirements",
+        type=str,
+        default="scaler;pargraph;parfun;pandas",
+        help="Python requirements string passed to the ECS task",
+    )
+    parser.add_argument("--ecs-python-version", type=str, default="3.12.5", help="Python version for ECS task")
+    parser.add_argument("--ecs-task-definition", type=str, default="scaler-task-definition", help="ECS task definition")
+    parser.add_argument(
+        "--ecs-task-cpu", type=int, default=4, help="Number of vCPUs for task (used to derive worker count)"
+    )
+    parser.add_argument("--ecs-task-memory", type=int, default=30, help="Task memory in GB for Fargate")
+    parser.add_argument(
+        "--ecs-subnets",
+        type=str,
+        required=True,
+        help="Comma-separated list of AWS subnet IDs for ECS tasks",
+    )
+
+    # Worker configuration
+    parser.add_argument(
+        "--io-threads", "-it", type=int, default=DEFAULT_IO_THREADS, help="number of io threads for zmq"
+    )
+    parser.add_argument(
+        "--per-worker-capabilities",
+        "-pwc",
+        type=parse_capabilities,
+        default="",
+        help='comma-separated capabilities provided by the workers (e.g. "-pwc linux,cpu=4")',
+    )
+    parser.add_argument("--worker-task-queue-size", "-wtqs", type=int, default=10, help="specify worker queue size")
+    parser.add_argument(
+        "--max-instances",
+        "-mi",
+        type=int,
+        required=True,
+        help="maximum number of ECS task instances that can be started, required to avoid unexpected surprise bills, -1 means no limit",
+    )
+    parser.add_argument(
+        "--heartbeat-interval",
+        "-hi",
+        type=int,
+        default=DEFAULT_HEARTBEAT_INTERVAL_SECONDS,
+        help="number of seconds that worker agent send heartbeat to scheduler",
+    )
+    parser.add_argument(
+        "--task-timeout-seconds",
+        "-tt",
+        type=int,
+        default=DEFAULT_TASK_TIMEOUT_SECONDS,
+        help="default task timeout seconds, 0 means never timeout",
+    )
+    parser.add_argument(
+        "--death-timeout-seconds",
+        "-dt",
+        type=int,
+        default=DEFAULT_WORKER_DEATH_TIMEOUT,
+        help="number of seconds without scheduler contact before worker shuts down",
+    )
+    parser.add_argument(
+        "--garbage-collect-interval-seconds",
+        "-gc",
+        type=int,
+        default=DEFAULT_GARBAGE_COLLECT_INTERVAL_SECONDS,
+        help="number of seconds worker doing garbage collection",
+    )
+    parser.add_argument(
+        "--trim-memory-threshold-bytes",
+        "-tm",
+        type=int,
+        default=DEFAULT_TRIM_MEMORY_THRESHOLD_BYTES,
+        help="number of bytes threshold for worker process that trigger deep garbage collection",
+    )
+    parser.add_argument(
+        "--hard-processor-suspend",
+        "-hps",
+        action="store_true",
+        default=DEFAULT_HARD_PROCESSOR_SUSPEND,
+        help="if true, suspended worker's processors will be actively suspended with a SIGTSTP signal",
+    )
+    parser.add_argument(
+        "--event-loop", "-e", default="builtin", choices=EventLoopType.allowed_types(), help="select event loop type"
+    )
+    parser.add_argument(
+        "--logging-paths",
+        "-lp",
+        nargs="*",
+        type=str,
+        default=("/dev/stdout",),
+        help="specify where worker logs should be logged to, it can accept multiple files, default is /dev/stdout",
+    )
+    parser.add_argument(
+        "--logging-level",
+        "-ll",
+        type=str,
+        choices=("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"),
+        default="INFO",
+        help="specify the logging level",
+    )
+    parser.add_argument(
+        "--logging-config-file",
+        "-lc",
+        type=str,
+        default=None,
+        help="use standard python .conf file to specify python logging file configuration format",
+    )
+    parser.add_argument(
+        "--object-storage-address",
+        "-osa",
+        type=ObjectStorageConfig.from_string,
+        default=None,
+        help="specify the object storage server address, e.g.: tcp://localhost:2346",
+    )
+    parser.add_argument("scheduler_address", type=ZMQConfig.from_string, help="scheduler address to connect workers to")
+
+    return parser.parse_args()
+
+
+def main():
+    args = get_args()
+    register_event_loop(args.event_loop)
+
+    setup_logger(args.logging_paths, args.logging_config_file, args.logging_level)
+
+    ecs_worker_adapter = ECSWorkerAdapter(
+        address=args.scheduler_address,
+        storage_address=args.object_storage_address,
+        capabilities=args.per_worker_capabilities,
+        io_threads=args.io_threads,
+        task_queue_size=args.worker_task_queue_size,
+        max_instances=args.max_instances,
+        heartbeat_interval_seconds=args.heartbeat_interval,
+        task_timeout_seconds=args.task_timeout_seconds,
+        death_timeout_seconds=args.death_timeout_seconds,
+        garbage_collect_interval_seconds=args.garbage_collect_interval_seconds,
+        trim_memory_threshold_bytes=args.trim_memory_threshold_bytes,
+        hard_processor_suspend=args.hard_processor_suspend,
+        event_loop=args.event_loop,
+        aws_access_key_id=args.aws_access_key_id,
+        aws_secret_access_key=args.aws_secret_access_key,
+        aws_region=args.aws_region,
+        ecs_cluster=args.ecs_cluster,
+        ecs_task_image=args.ecs_task_image,
+        ecs_python_requirements=args.ecs_python_requirements,
+        ecs_python_version=args.ecs_python_version,
+        ecs_task_definition=args.ecs_task_definition,
+        ecs_task_cpu=args.ecs_task_cpu,
+        ecs_task_memory=args.ecs_task_memory,
+        ecs_subnets=args.ecs_subnets.split(","),
+    )
+
+    app = ecs_worker_adapter.create_app()
+    web.run_app(app, host=args.host, port=args.port)
+
+
+if __name__ == "__main__":
+    main()
