@@ -58,7 +58,7 @@ def get_args():
         default="scaler;pargraph;parfun;pandas",
         help="Python requirements string passed to the ECS task",
     )
-    parser.add_argument("--ecs-python-version", type=str, default="3.12.5", help="Python version for ECS task")
+    parser.add_argument("--ecs-python-version", type=str, default="3.12.11", help="Python version for ECS task")
     parser.add_argument("--ecs-task-definition", type=str, default="scaler-task-definition", help="ECS task definition")
     parser.add_argument(
         "--ecs-task-cpu", type=int, default=4, help="Number of vCPUs for task (used to derive worker count)"

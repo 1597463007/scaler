@@ -122,11 +122,7 @@ class ECSWorkerAdapter:
                     {
                         "name": "scaler-container",
                         "image": self._ecs_task_image,
-                        "essential": True,
-                        "environment": [
-                            {"name": "PYTHON_REQUIREMENTS", "value": self._ecs_python_requirements},
-                            {"name": "PYTHON_VERSION", "value": self._ecs_python_version},
-                        ],
+                        "essential": True
                     }
                 ],
                 requiresCompatibilities=["FARGATE"],
@@ -142,7 +138,7 @@ class ECSWorkerAdapter:
 
         worker_names = [uuid.uuid4().hex for _ in range(self._ecs_task_cpu)]
         command = (
-            f"/opt/venv/bin/scaler_cluster {self._address.to_address()} "
+            f"scaler_cluster {self._address.to_address()} "
             f"--num-of-workers {self._ecs_task_cpu} "
             f"--worker-names {','.join(worker_names)} "
             f"--worker-task-queue-size {self._task_queue_size} "
@@ -161,7 +157,7 @@ class ECSWorkerAdapter:
         if self._storage_address:
             command += f" --object-storage-address {self._storage_address.to_string()}"
 
-        if self._capabilities:
+        if format_capabilities(self._capabilities).strip():
             command += f" --per-worker-capabilities {format_capabilities(self._capabilities)}"
 
         resp = self._ecs_client.run_task(
@@ -170,7 +166,11 @@ class ECSWorkerAdapter:
             launchType="FARGATE",
             overrides={
                 "containerOverrides": [
-                    {"name": "scaler-container", "environment": [{"name": "COMMAND", "value": command}]}
+                    {"name": "scaler-container", "environment": [
+                        {"name": "COMMAND", "value": command},
+                        {"name": "PYTHON_REQUIREMENTS", "value": self._ecs_python_requirements},
+                        {"name": "PYTHON_VERSION", "value": self._ecs_python_version},
+                    ]}
                 ]
             },
             networkConfiguration={
