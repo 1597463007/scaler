@@ -1,7 +1,9 @@
 #pragma once
 
 // C
-
+#ifdef __linux__
+#include <execinfo.h>
+#endif  // __linux__
 
 // C++
 #include <cstdlib>
